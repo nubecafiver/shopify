@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAFIVER · Ventas Tienda Virtual</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+  :root{
+    --paper:#f3efe4;--paper2:#efe9da;--card:#fbf9f3;--line:#e4ddca;--line2:#d8d0ba;
+    --green:#1f5c3d;--green-d:#16472f;--green-soft:#e6efe4;--ink:#2c2c28;--ink-soft:#6b6557;
+    --gold:#c9a24b;--gold-pill:#f0e6c8;--red:#c0392b;
+    --c1:#c0392b;--c2:#9a7d2e;--c3:#4f8a3f;--c4:#c97a4a;--c5:#7a4f9b;--c6:#2f6fd8;--c7:#3a8e8e;--c8:#a0522d;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;padding:0 0 50px;font-size:14px}
+  .topbar{height:5px;background:var(--green)}
+  .wrap{max-width:1860px;margin:0 auto;padding:0 26px}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 0 16px;border-bottom:2px solid var(--green);flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:16px}
+  .seal{width:56px;height:56px;border-radius:50%;border:2px solid var(--green);display:grid;place-items:center;background:var(--card);font-family:'JetBrains Mono';font-weight:700;font-size:9px;color:var(--green);letter-spacing:.5px;box-shadow:0 2px 6px rgba(31,92,61,.12)}
+  .brand h1{font-size:21px;font-weight:700;color:var(--green);letter-spacing:1.5px}
+  .reg-pill{display:inline-block;margin-top:5px;background:var(--gold-pill);border:1px solid var(--gold);color:#8a6d1f;font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;letter-spacing:.8px}
+  .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .sel{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:8px 14px;font-size:13px;color:var(--ink);font-family:'DM Sans';cursor:pointer}
+  .upd{font-size:12px;color:var(--ink-soft)}
+  .btn-reset{background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--ink-soft);cursor:pointer}
+  .btn-reset:hover{background:var(--paper2)}
+
+  .conn{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 16px;margin:16px 0}
+  .conn label{font-size:11px;font-weight:600;color:var(--ink-soft);letter-spacing:.5px}
+  .conn input{flex:1;min-width:240px;background:#fff;border:1px solid var(--line2);border-radius:7px;padding:8px 12px;font-size:12px;font-family:'JetBrains Mono'}
+  .conn button{background:var(--green);color:#fff;border:none;border-radius:7px;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer}
+  .conn button:hover{background:var(--green-d)}
+  .conn .hint{flex-basis:100%;font-size:11px;color:var(--ink-soft)}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.5px;background:var(--gold-pill);border:1px solid var(--gold);color:#8a6d1f}
+
+  .moderow{display:flex;gap:8px;margin:16px 0 4px}
+  .modebtn{border:1px solid var(--line2);background:var(--card);border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink-soft)}
+  .modebtn.active{background:var(--green);color:#fff;border-color:var(--green)}
+
+  .dayrow{display:flex;align-items:center;justify-content:space-between;margin:14px 0;flex-wrap:wrap;gap:12px}
+  .dayleft{display:flex;align-items:center;gap:14px}
+  .day-chip{display:flex;align-items:center;gap:8px;background:var(--green-soft);border:1px solid #cfe0cc;color:var(--green);font-weight:700;font-size:13px;padding:8px 16px;border-radius:9px;letter-spacing:1px}
+  .day-meta{font-size:13px;color:var(--ink-soft)}.day-meta b{color:var(--ink)}
+  .daynav{display:flex;gap:8px}
+  .daynav button{border:1px solid var(--line2);background:var(--card);border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink)}
+  .daynav button.cur{background:var(--green);color:#fff;border-color:var(--green)}
+  .daynav button:disabled{opacity:.4;cursor:not-allowed}
+
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:18px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+  .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+  .kpi.k0::before{background:var(--green)}.kpi.k1::before{background:var(--c6)}.kpi.k2::before{background:var(--c3)}.kpi.k3::before{background:var(--c4)}.kpi.k4::before{background:var(--c5)}
+  .kpi .lbl{font-size:11px;letter-spacing:1.5px;color:var(--ink-soft);font-weight:600;text-transform:uppercase}
+  .kpi .val{font-size:30px;font-weight:700;margin-top:10px;letter-spacing:-.5px}
+  .kpi .val.neg{color:var(--red)}
+  .kpi .sub{font-size:12px;color:var(--ink-soft);margin-top:6px}
+
+  .main{display:grid;grid-template-columns:1.7fr 1fr;gap:18px;margin-bottom:18px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px}
+  .ph{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  .ph h2{font-size:13px;font-weight:700;letter-spacing:1.2px;color:var(--ink);text-transform:uppercase}
+  .ph .cur-pill{background:var(--gold-pill);border:1px solid var(--gold);color:#8a6d1f;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;letter-spacing:.5px}
+  .ph .date{font-size:12px;color:var(--ink-soft);margin-left:auto}
+
+  table.org{width:100%;border-collapse:collapse}
+  table.org th{font-size:10.5px;letter-spacing:.8px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;text-align:right;padding:6px 8px;border-bottom:1px solid var(--line)}
+  table.org th:first-child{text-align:left}
+  table.org td{padding:11px 8px;font-size:13px;border-bottom:1px solid var(--line);text-align:right}
+  table.org td:first-child{text-align:left}
+  .ch-name{display:flex;align-items:center;gap:8px;font-weight:600}
+  .ch-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  .pct-tag{font-size:10px;font-weight:600;color:var(--ink-soft);background:var(--paper2);padding:1px 6px;border-radius:4px}
+  .var-cell{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+  .var-bar{height:5px;border-radius:3px;min-width:14px}
+  .var-num{font-size:12px;font-weight:600;width:54px;text-align:right}
+  .neg{color:var(--red)}.pos{color:var(--c3)}
+  tr.total-row td{background:var(--green);color:#fff;font-weight:700;border:none;font-size:13.5px}
+  tr.total-row td:first-child{border-radius:7px 0 0 7px}
+  tr.total-row td:last-child{border-radius:0 7px 7px 0}
+  .budget{margin-top:14px;background:var(--green-soft);border:1px solid #cfe0cc;border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center}
+  .budget .blab{font-size:12px;font-weight:700;color:var(--green);display:flex;align-items:center;gap:7px}
+  .budget .bcol{text-align:center}
+  .budget .bpct{font-size:16px;font-weight:700;color:var(--green)}
+  .budget .btrack{height:9px;background:#fff;border-radius:5px;overflow:hidden;margin-top:6px}
+  .budget .bfill{height:100%;background:var(--c3);border-radius:5px}
+  .budget .bnum{font-size:11px;color:var(--ink-soft);margin-top:2px}
+  .budget .bright{text-align:right}.budget .bright .big{font-size:13px;font-weight:700;color:var(--ink)}
+  .budget .bright .sm{font-size:10px;color:var(--ink-soft);letter-spacing:.5px}
+
+  .ranklist{list-style:none}
+  .ranklist li{display:flex;align-items:center;gap:12px;padding:9px 6px;border-bottom:1px solid var(--line)}
+  .ranklist li:last-child{border-bottom:none}
+  .ranklist .pos{width:22px;height:22px;border-radius:6px;background:var(--paper2);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--green);flex-shrink:0}
+  .ranklist .nm{flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ranklist .vl{font-size:13px;font-weight:700}
+  .ranklist .qt{font-size:11px;color:var(--ink-soft)}
+  .chart-box{position:relative;height:300px}
+  .chart-box.tall{height:340px}
+
+  .detail-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .detail-head .note{font-size:12px;color:var(--ink-soft)}
+  table.det{width:100%;border-collapse:collapse}
+  table.det th{font-size:10.5px;letter-spacing:.8px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;text-align:right;padding:8px 10px;border-bottom:1px solid var(--line2)}
+  table.det th:nth-child(-n+5){text-align:left}
+  table.det td{padding:9px 10px;font-size:12.5px;border-bottom:1px solid var(--line);text-align:right}
+  table.det td:nth-child(-n+5){text-align:left}
+  table.det tr:hover td{background:var(--paper2)}
+  .empty{text-align:center;padding:34px;color:var(--ink-soft);font-size:13px}
+  .clickable{cursor:pointer}.clickable:hover td{background:var(--green-soft)}
+  tr.sel-ch td{background:var(--green-soft)!important}
+  @media(max-width:1200px){.kpis{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="seal">CAFIVER</div>
+      <div><h1>CAFIVER · TIENDA VIRTUAL</h1>
+        <span class="reg-pill mono" id="regCount">0 REGISTROS</span></div>
+    </div>
+    <div class="controls">
+      <select class="sel" id="selEstado"><option>Todos los estados</option></select>
+      <select class="sel" id="selMes"><option>Todos los meses</option></select>
+      <span class="upd">Actualizado: <span id="updTime">—</span></span>
+      <button class="btn-reset" onclick="resetView()">↺ Reset</button>
+    </div>
+  </header>
+
+  <div class="conn">
+    <label>URL Apps Script</label>
+    <input type="text" id="apiUrl" value="https://script.google.com/macros/s/AKfycbzqKFIBOZ1Ge88rAt786jfi_RC_Bv1XsrQhoLtmHpuZZXkk4Fqn8mxdujh69v5boAJl/exec" placeholder="https://script.google.com/macros/s/AKfy.../exec">
+    <button onclick="cargarReal()">Conectar</button>
+    <span class="badge" id="modeBadge">DATOS DE EJEMPLO</span>
+    <span class="hint">Pega la URL de tu Web App de Apps Script para datos en vivo desde la hoja DETALLE_VENTAS. El token de Shopify queda seguro dentro de Google.</span>
+  </div>
+
+  <div class="moderow">
+    <button class="modebtn active" id="mDia" onclick="setMode('dia')">📅 Por día</button>
+    <button class="modebtn" id="mTotal" onclick="setMode('total')">📈 Acumulado total</button>
+  </div>
+
+  <div class="dayrow" id="dayrow">
+    <div class="dayleft">
+      <div class="day-chip">📅 DÍA</div>
+      <div class="day-meta">Día <b id="dayIdx">—</b> · <b id="dayDate">—</b></div>
+    </div>
+    <div class="daynav">
+      <button id="btnPrev" onclick="navDay(-1)">◀ Anterior</button>
+      <button class="cur" id="btnCur" onclick="navDay(0)">—</button>
+      <button id="btnNext" onclick="navDay(1)">Siguiente ▶</button>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="main">
+    <div class="panel">
+      <div class="ph"><h2>Productos vendidos</h2><span class="cur-pill">MXN</span>
+        <span class="date" id="orgDate">—</span></div>
+      <table class="org">
+        <thead><tr><th>Producto</th><th>Unidades</th><th>Importe</th><th>Pedidos</th><th>%</th></tr></thead>
+        <tbody id="orgBody"></tbody>
+      </table>
+      <div class="budget">
+        <div class="blab">📊 MES VS PRESUPUESTO</div>
+        <div class="bcol">
+          <div class="bpct" id="budPct">—</div>
+          <div class="btrack" style="width:160px"><div class="bfill" id="budFill" style="width:0%"></div></div>
+          <div class="bnum" id="budNum">—</div>
+        </div>
+        <div class="bright"><div class="big" id="budTotal">—</div><div class="sm">PRESUP. MENSUAL</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><h2>Ventas por estado</h2><span class="date" id="estDate">—</span></div>
+      <div class="chart-box tall"><canvas id="chartEstado"></canvas></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="panel">
+      <div class="ph"><h2>Tendencia de ventas</h2><span class="date">Importe diario</span></div>
+      <div class="chart-box"><canvas id="chartTend"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h2>Top clientes</h2><span class="date" id="cliDate">—</span></div>
+      <ul class="ranklist" id="topCli"></ul>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="detail-head">
+      <div class="ph" style="margin:0"><h2>Detalle de líneas</h2></div>
+      <div class="note" id="detNote">Clic en un producto para filtrar</div>
+    </div>
+    <table class="det">
+      <thead><tr><th>#</th><th>Fecha</th><th>Pedido</th><th>Cliente</th><th>Producto</th>
+        <th>Estado</th><th>Cant.</th><th>P. Unit.</th><th>Importe</th></tr></thead>
+      <tbody id="detBody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+/* ====== datos de ejemplo con estructura DETALLE_VENTAS de Shopify ====== */
+const PRODUCTOS=[
+  {sku:'CAF-001',nombre:'Café Veracruz Tueste Medio 1kg',precio:285},
+  {sku:'CAF-002',nombre:'Café Altura Coatepec 500g',precio:175},
+  {sku:'CAF-003',nombre:'Café Orgánico Premium 1kg',precio:340},
+  {sku:'CAF-004',nombre:'Café Molido Espresso 250g',precio:95},
+  {sku:'CAF-005',nombre:'Mezcla Casa Cafiver 1kg',precio:240},
+  {sku:'ACC-010',nombre:'Prensa Francesa 600ml',precio:420},
+  {sku:'ACC-011',nombre:'Filtros V60 100pz',precio:85},
+  {sku:'CAF-006',nombre:'Café Descafeinado 500g',precio:195},
+];
+const CLIENTES=[
+  ['Mariana Hernández','Córdoba','Veracruz'],['José Ramírez','Orizaba','Veracruz'],
+  ['Lucía Méndez','Xalapa','Veracruz'],['Carlos Domínguez','Puebla','Puebla'],
+  ['Ana Torres','CDMX','Ciudad de México'],['Roberto Vega','Veracruz','Veracruz'],
+  ['Patricia Luna','Córdoba','Veracruz'],['Miguel Castro','Fortín','Veracruz'],
+  ['Sofía Reyes','Puebla','Puebla'],['Daniel Aguilar','CDMX','Ciudad de México'],
+  ['Gabriela Ortiz','Orizaba','Veracruz'],['Fernando Cruz','Monterrey','Nuevo León'],
+  ['Laura Jiménez','Guadalajara','Jalisco'],['Héctor Morales','Toluca','Estado de México'],
+];
+function genDatos(){
+  const rows=[];const start=new Date(2026,0,1);const hoy=new Date(2026,4,21);
+  const dias=Math.round((hoy-start)/86400000)+1;let ped=1000;
+  for(let d=0;d<dias;d++){
+    const fecha=new Date(start);fecha.setDate(start.getDate()+d);
+    const fstr=fecha.toISOString().slice(0,10);const dow=fecha.getDay();
+    const base=(dow===0||dow===6)?3:6;
+    const nPed=Math.max(0,Math.round(base+(Math.random()*5-2)));
+    for(let p=0;p<nPed;p++){
+      ped++;const cli=CLIENTES[Math.floor(Math.random()*CLIENTES.length)];
+      const nL=1+Math.floor(Math.random()*3);
+      for(let l=0;l<nL;l++){
+        const prod=PRODUCTOS[Math.floor(Math.random()*PRODUCTOS.length)];
+        const cant=1+Math.floor(Math.random()*4);
+        rows.push({fecha:fstr,pedido:'#'+ped,cliente:cli[0],sku:prod.sku,producto:prod.nombre,
+          precio:prod.precio,cantidad:cant,importe:prod.precio*cant,
+          ciudad:cli[1],estado:cli[2],moneda:'MXN'});
+      }
+    }
+  }
+  return rows;
+}
+
+const fmt0=n=>(n<0?'-':'')+'$'+Math.abs(Math.round(n)).toLocaleString('es-MX');
+const PALETTE=['#c0392b','#9a7d2e','#4f8a3f','#c97a4a','#7a4f9b','#2f6fd8','#3a8e8e','#a0522d','#b8860b','#556b2f'];
+const PRESUP_MENSUAL=850000; // ajustable
+
+/* URL de tu Apps Script Web App (lee la hoja DETALLE_VENTAS) */
+const API_URL='https://script.google.com/macros/s/AKfycbzqKFIBOZ1Ge88rAt786jfi_RC_Bv1XsrQhoLtmHpuZZXkk4Fqn8mxdujh69v5boAJl/exec';
+
+let DATA=[],DIAS=[],curDayIdx=0,mode='dia',selProd=null,selEstado='Todos los estados';
+let chTend=null,chEst=null;
+
+function bootstrap(rows){
+  DATA=rows;DIAS=[...new Set(rows.map(r=>r.fecha))].sort();curDayIdx=DIAS.length-1;
+  selProd=null;
+  document.getElementById('regCount').textContent=rows.length.toLocaleString('es-MX')+' REGISTROS';
+  document.getElementById('updTime').textContent=new Date().toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  const estados=[...new Set(rows.map(r=>r.estado))].sort();
+  document.getElementById('selEstado').innerHTML='<option>Todos los estados</option>'+estados.map(e=>`<option>${e}</option>`).join('');
+  document.getElementById('selEstado').onchange=e=>{selEstado=e.target.value;selProd=null;render();};
+  render();
+}
+function setMode(m){mode=m;selProd=null;
+  document.getElementById('mDia').classList.toggle('active',m==='dia');
+  document.getElementById('mTotal').classList.toggle('active',m==='total');
+  document.getElementById('dayrow').style.display=m==='dia'?'flex':'none';
+  render();}
+function navDay(dir){if(dir===0)curDayIdx=DIAS.length-1;
+  else curDayIdx=Math.max(0,Math.min(DIAS.length-1,curDayIdx+dir));selProd=null;render();}
+function resetView(){mode='dia';curDayIdx=DIAS.length-1;selProd=null;selEstado='Todos los estados';
+  document.getElementById('selEstado').value='Todos los estados';setMode('dia');}
+
+function getRows(){
+  let rows = mode==='dia'? DATA.filter(r=>r.fecha===DIAS[curDayIdx]) : DATA.slice();
+  if(selEstado!=='Todos los estados') rows=rows.filter(r=>r.estado===selEstado);
+  return rows;
+}
+
+function render(){
+  const rows=getRows();
+  const fecha=DIAS[curDayIdx];
+  const etiqueta = mode==='dia'? fecha : 'Acumulado total';
+  ['orgDate','estDate','cliDate'].forEach(id=>document.getElementById(id).textContent=etiqueta);
+
+  if(mode==='dia'){
+    document.getElementById('dayIdx').textContent=(curDayIdx+1)+' de '+DIAS.length;
+    document.getElementById('dayDate').textContent=fecha;
+    document.getElementById('btnCur').textContent=new Date(fecha).toLocaleDateString('es-MX',{day:'2-digit',month:'short'});
+    document.getElementById('btnPrev').disabled=curDayIdx===0;
+    document.getElementById('btnNext').disabled=curDayIdx===DIAS.length-1;
+  }
+
+  // KPIs
+  const totImporte=rows.reduce((s,r)=>s+r.importe,0);
+  const pedidos=new Set(rows.map(r=>r.pedido));
+  const clientes=new Set(rows.map(r=>r.cliente));
+  const unidades=rows.reduce((s,r)=>s+r.cantidad,0);
+  const ticket=pedidos.size?totImporte/pedidos.size:0;
+  document.getElementById('kpis').innerHTML=[
+    {c:'k0',l:mode==='dia'?'Venta del día':'Venta total',v:fmt0(totImporte),s:rows.length+' líneas',neg:totImporte<0},
+    {c:'k1',l:'Pedidos',v:pedidos.size,s:clientes.size+' clientes',neg:false},
+    {c:'k2',l:'Clientes',v:clientes.size,s:'distintos',neg:false},
+    {c:'k3',l:'Ticket promedio',v:fmt0(ticket),s:'por pedido',neg:ticket<0},
+    {c:'k4',l:'Unidades',v:unidades.toLocaleString('es-MX'),s:'piezas',neg:false},
+  ].map(k=>`<div class="kpi ${k.c}"><div class="lbl">${k.l}</div>
+    <div class="val ${k.neg?'neg':''}">${k.v}</div><div class="sub">${k.s||'&nbsp;'}</div></div>`).join('');
+
+  // tabla productos
+  const prodAgg={};
+  rows.forEach(r=>{if(!prodAgg[r.producto])prodAgg[r.producto]={imp:0,u:0,ped:new Set()};
+    prodAgg[r.producto].imp+=r.importe;prodAgg[r.producto].u+=r.cantidad;prodAgg[r.producto].ped.add(r.pedido);});
+  const prods=Object.entries(prodAgg).sort((a,b)=>b[1].imp-a[1].imp);
+  const maxImp=Math.max(...prods.map(p=>Math.abs(p[1].imp)),1);
+  document.getElementById('orgBody').innerHTML=prods.map((p,i)=>{
+    const pct=totImporte?p[1].imp/totImporte*100:0;const w=Math.abs(p[1].imp)/maxImp*60;
+    const sel=selProd===p[0]?'sel-ch':'';
+    return `<tr class="clickable ${sel}" onclick="pickProd('${p[0].replace(/'/g,"\\'")}')">
+      <td><span class="ch-name"><span class="ch-dot" style="background:${PALETTE[i%PALETTE.length]}"></span>${p[0]}</span></td>
+      <td class="mono">${p[1].u}</td>
+      <td class="mono ${p[1].imp<0?'neg':''}">${fmt0(p[1].imp)}</td>
+      <td class="mono">${p[1].ped.size}</td>
+      <td><div class="var-cell"><span class="var-num pos">${pct.toFixed(1)}%</span>
+        <span class="var-bar" style="width:${w}px;background:${PALETTE[i%PALETTE.length]}"></span></div></td></tr>`;
+  }).join('')+
+  `<tr class="total-row"><td>TOTAL</td><td class="mono">${unidades}</td>
+    <td class="mono">${fmt0(totImporte)}</td><td class="mono">${pedidos.size}</td><td></td></tr>`;
+
+  // presupuesto (mes en curso vs mensual) - solo aplica en modo día con un mes
+  const mesAct = mode==='dia'? fecha.slice(0,7) : DIAS[DIAS.length-1].slice(0,7);
+  const mxMes=DATA.filter(r=>r.fecha.slice(0,7)===mesAct).reduce((s,r)=>s+r.importe,0);
+  document.getElementById('budPct').textContent=(mxMes/PRESUP_MENSUAL*100).toFixed(1)+'%';
+  document.getElementById('budFill').style.width=Math.min(100,mxMes/PRESUP_MENSUAL*100)+'%';
+  document.getElementById('budNum').textContent=fmt0(mxMes)+' de '+fmt0(PRESUP_MENSUAL);
+  document.getElementById('budTotal').textContent=fmt0(PRESUP_MENSUAL);
+
+  // ventas por estado
+  const estAgg={};rows.forEach(r=>{estAgg[r.estado]=(estAgg[r.estado]||0)+r.importe});
+  const ests=Object.entries(estAgg).sort((a,b)=>b[1]-a[1]);
+  if(chEst)chEst.destroy();
+  chEst=new Chart(document.getElementById('chartEstado'),{type:'bar',
+    data:{labels:ests.map(e=>e[0]),datasets:[{data:ests.map(e=>e[1]),
+      backgroundColor:ests.map((e,i)=>PALETTE[i%PALETTE.length]),borderRadius:4}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt0(c.parsed.x)}}},
+      scales:{x:{grid:{color:'rgba(0,0,0,.06)'},ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k',font:{family:'JetBrains Mono',size:10}}},
+        y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+
+  // tendencia (siempre acumulada por día, respeta filtro estado)
+  let baseTend = selEstado!=='Todos los estados'? DATA.filter(r=>r.estado===selEstado):DATA;
+  const porDia={};baseTend.forEach(r=>{porDia[r.fecha]=(porDia[r.fecha]||0)+r.importe});
+  const dts=Object.keys(porDia).sort();
+  if(chTend)chTend.destroy();
+  const ctx=document.getElementById('chartTend').getContext('2d');
+  const grad=ctx.createLinearGradient(0,0,0,300);
+  grad.addColorStop(0,'rgba(31,92,61,.35)');grad.addColorStop(1,'rgba(31,92,61,.02)');
+  chTend=new Chart(ctx,{type:'line',data:{labels:dts,datasets:[{data:dts.map(d=>porDia[d]),
+    borderColor:'#1f5c3d',backgroundColor:grad,fill:true,tension:.3,borderWidth:2,pointRadius:0,pointHoverRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>fmt0(c.parsed.y)}}},
+      scales:{x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{maxTicksLimit:10,maxRotation:0,font:{size:10}}},
+        y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k',font:{family:'JetBrains Mono',size:10}}}}}});
+
+  // top clientes
+  const cliAgg={};rows.forEach(r=>{cliAgg[r.cliente]=(cliAgg[r.cliente]||0)+r.importe});
+  const topCli=Object.entries(cliAgg).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  document.getElementById('topCli').innerHTML=topCli.map((c,i)=>
+    `<li><span class="pos">${i+1}</span><span class="nm">${c[0]}</span>
+     <span class="vl">${fmt0(c[1])}</span></li>`).join('') || '<li class="empty">Sin datos</li>';
+
+  renderDetalle();
+}
+
+function pickProd(nombre){selProd=selProd===nombre?null:nombre;render();}
+function renderDetalle(){
+  let rows=getRows();const note=document.getElementById('detNote');
+  if(selProd){rows=rows.filter(r=>r.producto===selProd);note.textContent=selProd+' · '+rows.length+' líneas';}
+  else{note.textContent='Mostrando todas las líneas ('+rows.length+')';}
+  rows=rows.slice(0,300);
+  document.getElementById('detBody').innerHTML=rows.length?rows.map((r,i)=>
+    `<tr><td>${i+1}</td><td>${r.fecha}</td><td>${r.pedido}</td><td>${r.cliente}</td>
+     <td>${r.producto}</td><td>${r.estado}</td><td class="mono">${r.cantidad}</td>
+     <td class="mono">${fmt0(r.precio)}</td>
+     <td class="mono ${r.importe<0?'neg':''}">${fmt0(r.importe)}</td></tr>`).join('')
+    : `<tr><td colspan="9" class="empty">Sin líneas para este filtro</td></tr>`;
+}
+
+/* ====== conexión real ====== */
+async function cargarReal(){
+  const url=document.getElementById('apiUrl').value.trim();
+  if(!url){alert('Pega la URL de tu Apps Script.');return;}
+  try{
+    const res=await fetch(url);const data=await res.json();
+    const rows=normalizar(data);
+    if(!rows.length){alert('La respuesta no trae filas válidas.');return;}
+    bootstrap(rows);
+    const b=document.getElementById('modeBadge');
+    b.textContent='DATOS EN VIVO';b.style.background='var(--green-soft)';
+    b.style.borderColor='#4f8a3f';b.style.color='#2f6b2f';
+  }catch(e){
+    alert('No se pudo conectar: '+e.message+'\nVerifica que el Apps Script esté publicado como Web App ("Cualquier persona").');
+  }
+}
+function normalizar(data){
+  let arr=Array.isArray(data)?data:(data.rows||data.data||data.values||[]);
+  return arr.map(r=>{
+    if(Array.isArray(r)){
+      return {fecha:(''+r[2]).slice(0,10),pedido:r[1],cliente:r[4],sku:r[6],producto:r[7],
+        precio:+r[8]||0,cantidad:+r[9]||0,importe:+r[10]||(+r[8]*+r[9])||0,
+        ciudad:r[12],estado:r[13]||'Sin estado',moneda:r[11]};
+    }
+    return {fecha:(''+(r.fecha||r.FECHA)).slice(0,10),pedido:r.pedido||r.PEDIDO,
+      cliente:r.cliente||r.CLIENTE,sku:r.sku||r.SKU,producto:r.producto||r.PRODUCTO,
+      precio:+(r.precio||r.PRECIO_UNITARIO)||0,cantidad:+(r.cantidad||r.CANTIDAD)||0,
+      importe:+(r.importe||r.IMPORTE_LINEA)||((+r.precio||+r.PRECIO_UNITARIO||0)*(+r.cantidad||+r.CANTIDAD||0)),
+      ciudad:r.ciudad||r.CIUDAD,estado:r.estado||r.ESTADO||'Sin estado',moneda:r.moneda||r.MONEDA};
+  }).filter(r=>r.fecha&&r.fecha!=='null');
+}
+
+/* ====== arranque: intenta datos reales, si falla usa ejemplo ====== */
+async function autoCargar(){
+  const b=document.getElementById('modeBadge');
+  b.textContent='CARGANDO…'; b.style.background='var(--gold-pill)';
+  try{
+    const res=await fetch(API_URL);
+    const data=await res.json();
+    const rows=normalizar(data);
+    if(!rows.length) throw new Error('sin filas');
+    bootstrap(rows);
+    b.textContent='DATOS EN VIVO'; b.style.background='var(--green-soft)';
+    b.style.borderColor='#4f8a3f'; b.style.color='#2f6b2f';
+  }catch(e){
+    bootstrap(genDatos());
+    b.textContent='DATOS DE EJEMPLO'; b.style.background='var(--gold-pill)';
+    b.style.borderColor='var(--gold)'; b.style.color='#8a6d1f';
+    console.warn('No se pudo cargar en vivo:',e.message);
+  }
+}
+autoCargar();
+</script>
+</body>
+</html>
