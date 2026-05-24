@@ -399,21 +399,28 @@ function renderDetalle(){
     : `<tr><td colspan="9" class="empty">Sin líneas para este filtro</td></tr>`;
 }
 
-/* ====== conexión real ====== */
-async function cargarReal(){
+/* ====== conexión real manual (botón) vía JSONP ====== */
+function cargarReal(){
   const url=document.getElementById('apiUrl').value.trim();
   if(!url){alert('Pega la URL de tu Apps Script.');return;}
-  try{
-    const res=await fetch(url);const data=await res.json();
+  const b=document.getElementById('modeBadge');
+  b.textContent='CARGANDO…'; b.style.background='var(--gold-pill)';
+  const cbName='cafiverManCB_'+Date.now();
+  const to=setTimeout(()=>{alert('No respondió a tiempo. Revisa que el Apps Script esté publicado con acceso "Cualquier usuario".');},20000);
+  window[cbName]=function(data){
+    clearTimeout(to);
     const rows=normalizar(data);
     if(!rows.length){alert('La respuesta no trae filas válidas.');return;}
     bootstrap(rows);
-    const b=document.getElementById('modeBadge');
-    b.textContent='DATOS EN VIVO';b.style.background='var(--green-soft)';
-    b.style.borderColor='#4f8a3f';b.style.color='#2f6b2f';
-  }catch(e){
-    alert('No se pudo conectar: '+e.message+'\nVerifica que el Apps Script esté publicado como Web App ("Cualquier persona").');
-  }
+    b.textContent='DATOS EN VIVO'; b.style.background='var(--green-soft)';
+    b.style.borderColor='#4f8a3f'; b.style.color='#2f6b2f';
+    delete window[cbName]; if(s.parentNode)s.parentNode.removeChild(s);
+  };
+  const sep=url.indexOf('?')>=0?'&':'?';
+  const s=document.createElement('script');
+  s.src=url+sep+'callback='+cbName;
+  s.onerror=function(){clearTimeout(to);alert('No se pudo conectar. Verifica la URL y que esté publicado como Web App.');};
+  document.body.appendChild(s);
 }
 function normalizar(data){
   let arr=Array.isArray(data)?data:(data.rows||data.data||data.values||[]);
@@ -431,24 +438,39 @@ function normalizar(data){
   }).filter(r=>r.fecha&&r.fecha!=='null');
 }
 
-/* ====== arranque: intenta datos reales, si falla usa ejemplo ====== */
-async function autoCargar(){
+/* ====== arranque: intenta datos reales vía JSONP (esquiva CORS), si falla usa ejemplo ====== */
+function autoCargar(){
   const b=document.getElementById('modeBadge');
   b.textContent='CARGANDO…'; b.style.background='var(--gold-pill)';
-  try{
-    const res=await fetch(API_URL);
-    const data=await res.json();
-    const rows=normalizar(data);
-    if(!rows.length) throw new Error('sin filas');
-    bootstrap(rows);
-    b.textContent='DATOS EN VIVO'; b.style.background='var(--green-soft)';
-    b.style.borderColor='#4f8a3f'; b.style.color='#2f6b2f';
-  }catch(e){
+
+  const callbackName='cafiverCB_'+Date.now();
+  const timeout=setTimeout(()=>{ fallarEjemplo('timeout'); },20000);
+
+  window[callbackName]=function(data){
+    clearTimeout(timeout);
+    try{
+      const rows=normalizar(data);
+      if(!rows.length) throw new Error('sin filas');
+      bootstrap(rows);
+      b.textContent='DATOS EN VIVO'; b.style.background='var(--green-soft)';
+      b.style.borderColor='#4f8a3f'; b.style.color='#2f6b2f';
+    }catch(err){ fallarEjemplo(err.message); }
+    delete window[callbackName];
+    if(script.parentNode) script.parentNode.removeChild(script);
+  };
+
+  function fallarEjemplo(motivo){
     bootstrap(genDatos());
     b.textContent='DATOS DE EJEMPLO'; b.style.background='var(--gold-pill)';
     b.style.borderColor='var(--gold)'; b.style.color='#8a6d1f';
-    console.warn('No se pudo cargar en vivo:',e.message);
+    console.warn('No se pudo cargar en vivo:',motivo);
   }
+
+  const sep = API_URL.indexOf('?')>=0 ? '&' : '?';
+  const script=document.createElement('script');
+  script.src=API_URL+sep+'callback='+callbackName;
+  script.onerror=function(){ clearTimeout(timeout); fallarEjemplo('error de red'); };
+  document.body.appendChild(script);
 }
 autoCargar();
 </script>
