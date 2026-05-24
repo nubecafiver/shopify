@@ -130,15 +130,16 @@
       <select class="sel" id="selEstado"><option>Todos los estados</option></select>
       <select class="sel" id="selMes"><option>Todos los meses</option></select>
       <span class="upd">Actualizado: <span id="updTime">—</span></span>
+      <span class="badge" id="modeBadge" style="margin-left:4px">CARGANDO…</span>
       <button class="btn-reset" onclick="resetView()">↺ Reset</button>
     </div>
   </header>
 
-  <div class="conn">
+  <div class="conn" style="display:none">
     <label>URL Apps Script</label>
     <input type="text" id="apiUrl" value="https://script.google.com/macros/s/AKfycbwPokXAdiO5ZoKPaIfrvy-m85KQlm-CwWo24BxXl0MXCX8U4RFqkvQlfzGQRVCxmF0/exec" placeholder="https://script.google.com/macros/s/AKfy.../exec">
     <button onclick="cargarReal()">Conectar</button>
-    <span class="badge" id="modeBadge">DATOS DE EJEMPLO</span>
+    <span class="badge">DATOS DE EJEMPLO</span>
     <span class="hint">Pega la URL de tu Web App de Apps Script para datos en vivo desde la hoja DETALLE_VENTAS. El token de Shopify queda seguro dentro de Google.</span>
   </div>
 
